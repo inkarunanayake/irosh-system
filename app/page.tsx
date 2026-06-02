@@ -25,9 +25,9 @@ export default function HomePage() {
   const [loading, setLoading] =
     useState(false);
 
-  const [services, setServices] = useState<any[]>([]);
-  const [packages, setPackages] = useState<any[]>([]);
-  const [galleryImages, setGalleryImages] = useState<any[]>([]);
+  
+  
+  
   const [reviews, setReviews] = useState<any[]>([]);
 
 
@@ -89,9 +89,46 @@ export default function HomePage() {
       setLoading(false);
     };
 
-  
+const galleryImages = [
+  "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f",
+  "https://images.unsplash.com/photo-1516280440614-37939bbacd81",
+  "https://images.unsplash.com/photo-1501386761578-eac5c94b800a",
+  "https://images.unsplash.com/photo-1511578314322-379afb476865",
+  "https://images.unsplash.com/photo-1505373877841-8d25f7d46678",
+  "https://images.unsplash.com/photo-1492684223066-81342ee5ff30",
+];
 
 
+const packages = [
+  {
+    name: "Basic Package",
+    price: "Contact Us",
+    details: "2 Cameras • Basic Audio • Streaming",
+  },
+
+  {
+    name: "Standard Package",
+    price: "Contact Us",
+    details: "4 Cameras • LED • Lighting • Audio",
+  },
+
+  {
+    name: "Premium Package",
+    price: "Contact Us",
+    details: "Full Production Setup",
+  },
+];  
+
+const services = [
+  "Live Streaming",
+  "LED Wall Systems",
+  "Multi Camera Production",
+  "Professional Lighting",
+  "Sound Systems",
+  "Wedding Video",
+  "Concert video",
+  "Studio Production",
+];
  
 
   
