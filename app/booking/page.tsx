@@ -19,11 +19,10 @@ export default function BookingPage() {
 
   const fetchData = async () => {
     const { data: bData } = await supabase.from("bookings").select("*");
-    const localBookings = JSON.parse(localStorage.getItem("bookings") || "[]");
-    setBookings([...(bData || []), ...localBookings]);
-    
     const { data: wData } = await supabase.from("users").select("id, name").eq("role", "worker");
     const { data: eData } = await supabase.from("equipment").select("*");
+    
+    setBookings(bData || []);
     setWorkers(wData || []);
     setEquipment(eData || []);
   };
@@ -32,10 +31,7 @@ export default function BookingPage() {
     setSelectedWorkers(prev => {
       const current = prev[bId] || [];
       const exists = current.find(w => w.id === worker.id);
-      return { 
-        ...prev, 
-        [bId]: exists ? current.filter(w => w.id !== worker.id) : [...current, worker] 
-      };
+      return { ...prev, [bId]: exists ? current.filter(w => w.id !== worker.id) : [...current, worker] };
     });
   };
 
@@ -48,16 +44,16 @@ export default function BookingPage() {
     });
   };
 
-  const saveFinalBill = async (id: number) => {
+  const handleSave = async (id: number) => {
     const original = editForm.total_balance || 0;
     const disc = editForm.discount || 0;
     const final = original - (original * (disc / 100));
     
     await supabase.from("bookings").update({ 
       ...editForm, 
-      final_balance: final, 
-      workers: selectedWorkers[id], 
-      equipment: selectedEquip[id] 
+      final_balance: final,
+      workers: selectedWorkers[id],
+      equipment: selectedEquip[id]
     }).eq("id", id);
     
     setEditingId(null);
@@ -66,14 +62,14 @@ export default function BookingPage() {
   };
 
   return (
-    <main className="p-8 bg-gray-50 min-h-screen">
-      <div className="flex justify-between mb-6">
+    <main className="p-8 bg-gray-50 min-h-screen text-black">
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Booking Management</h1>
-        <button onClick={() => router.push("/admin")} className="bg-red-600 text-white px-4 py-2 rounded">Back to Dashboard</button>
+        <button onClick={() => router.push("/admin")} className="bg-red-600 text-white px-4 py-2 rounded">Back to Admin</button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {bookings.map(b => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {bookings.map((b) => (
           <div key={b.id} className="bg-white p-6 rounded-xl border shadow-sm">
             {editingId === b.id ? (
               <div className="space-y-3">
@@ -83,7 +79,6 @@ export default function BookingPage() {
                 <input type="number" className="w-full border p-2 text-sm" defaultValue={b.discount} onChange={e => setEditForm({...editForm, discount: Number(e.target.value)})} placeholder="Discount %" />
                 
                 <div className="flex flex-wrap gap-2">
-                  <p className="text-xs font-bold w-full">Workers:</p>
                   {workers.map(w => (
                     <button key={w.id} onClick={() => toggleWorker(b.id, w)} className={`p-1 text-xs border ${selectedWorkers[b.id]?.find(sw => sw.id === w.id) ? 'bg-black text-white' : ''}`}>
                       {w.name}
@@ -96,12 +91,13 @@ export default function BookingPage() {
                   {equipment.map(e => <option key={e.id} value={e.id}>{e.brand}</option>)}
                 </select>
 
-                <button onClick={() => saveFinalBill(b.id)} className="w-full bg-black text-white py-2 rounded">Save & Print Bill</button>
+                <button onClick={() => handleSave(b.id)} className="w-full bg-black text-white py-2 rounded font-bold">Save & Print Bill</button>
               </div>
             ) : (
               <div>
-                <h2 className="font-bold">{b.full_name}</h2>
-                <p className="text-sm">Final Balance: Rs. {b.final_balance || b.total_balance}</p>
+                <h2 className="font-bold text-lg">{b.full_name}</h2>
+                <p className="text-sm">Phone: {b.customer_phone}</p>
+                <p className="text-sm font-bold mt-2">Final Balance: Rs. {b.final_balance || b.total_balance}</p>
                 <button onClick={() => {setEditingId(b.id); setEditForm(b);}} className="mt-4 text-blue-600 underline">Edit Full Details</button>
               </div>
             )}
