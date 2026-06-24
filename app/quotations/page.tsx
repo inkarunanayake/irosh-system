@@ -56,7 +56,6 @@ export default function QuotationsPage() {
           backgroundPosition: "top center", 
           backgroundRepeat: "no-repeat" 
         }}>
-          {/* අන්තර්ගතය රූපයට පහළින් මැදට සිටින සේ සැකසුම */}
           <div style={{ marginTop: "220px", width: "100%" }}> 
             <div style={{ maxWidth: "90%", margin: "0 auto" }}>
               <p><strong>To:</strong> {clientName}</p>
@@ -74,10 +73,6 @@ export default function QuotationsPage() {
               <div style={{ marginTop: "30px" }}>
                 <strong>Terms & Conditions:</strong>
                 <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", fontSize: "12px" }}>{terms}</pre>
-              </div>
-
-              <div style={{ marginTop: "50px", textAlign: "center", fontStyle: "italic", color: "#555" }}>
-                Quality Sound... Perfect Moments...
               </div>
             </div>
           </div>
