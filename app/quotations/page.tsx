@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -14,7 +14,6 @@ export default function QuotationsPage() {
   const [amount, setAmount] = useState("");
   const [terms, setTerms] = useState("");
 
-  // Default Terms
   const defaultTermsList = [
     "50% advance payment required for booking confirmation.",
     "The balance payment must be settled on the event day.",
@@ -38,7 +37,8 @@ export default function QuotationsPage() {
   };
 
   const inputStyle = { width: "100%", padding: "8px", marginBottom: "10px", borderRadius: "5px", border: "1px solid #999", color: "#000", background: "#fff" };
-  const labelStyle = { display: "block", marginBottom: "5px", fontWeight: "bold", color: "#333" };
+  const labelStyle = { display: "block", marginBottom: "5px", fontWeight: "bold", color: "#000" }; // අකුරු කළු පාට කළා
+  const checkboxLabelStyle = { color: "#000", fontSize: "14px", cursor: "pointer" }; // Checkbox පාඨ කළු පාට කළා
 
   return (
     <main style={{ minHeight: "100vh", background: "#f4f4f4", padding: "20px" }}>
@@ -63,10 +63,13 @@ export default function QuotationsPage() {
           <label style={labelStyle}>Total Amount (Rs.)</label>
           <input value={amount} onChange={(e) => setAmount(e.target.value)} style={inputStyle} />
           
-          <label style={labelStyle}>Select Default Terms:</label>
+          <label style={labelStyle}>Select Terms:</label>
           {defaultTermsList.map((term, index) => (
-            <div key={index} style={{ marginBottom: "5px" }}>
-              <input type="checkbox" onChange={() => handleCheckboxChange(term)} /> {term}
+            <div key={index} style={{ marginBottom: "8px" }}>
+              <label style={checkboxLabelStyle}>
+                <input type="checkbox" onChange={() => handleCheckboxChange(term)} style={{ marginRight: "10px" }} /> 
+                {term}
+              </label>
             </div>
           ))}
           
@@ -94,10 +97,10 @@ export default function QuotationsPage() {
             </table>
 
             <div style={{ marginTop: "40px" }}>
-              <p style={{ fontWeight: "bold" }}>Terms & Conditions:</p>
-              <ul style={{ fontSize: "13px", paddingLeft: "20px" }}>
+              <p style={{ fontWeight: "bold", textDecoration: "underline" }}>Terms & Conditions:</p>
+              <ul style={{ fontSize: "14px", paddingLeft: "20px" }}>
                 {terms.split('\n').filter(t => t.trim() !== "").map((term, i) => (
-                  <li key={i} style={{ marginBottom: "5px" }}>{term}</li>
+                  <li key={i} style={{ marginBottom: "8px" }}>{term}</li>
                 ))}
               </ul>
             </div>
