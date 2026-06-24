@@ -10,15 +10,18 @@ export default function QuotationsPage() {
   const [clientName, setClientName] = useState("");
   const [eventName, setEventName] = useState("");
   const [eventDate, setEventDate] = useState("");
+  const [eventTime, setEventTime] = useState(""); // අලුතින් එක් කළා
   const [packageName, setPackageName] = useState("");
   const [amount, setAmount] = useState("");
   const [terms, setTerms] = useState("");
 
+  // මෙතැනදී ඔබට ඕනෑම වෙලාවක Default Terms අලුතින් එකතු කිරීමට හෝ වෙනස් කිරීමට හැකියාව ඇත
   const defaultTermsList = [
     "50% advance payment required for booking confirmation.",
     "The balance payment must be settled on the event day.",
-    "Equipment should be handled with care; any damage caused will be charged.",
-    "Cancellation must be notified at least 7 days before the event."
+    "Meals should be provided for the technical crew (sound & light team).",
+    "Event time: Please specify the start and end time of the event.",
+    "Equipment should be handled with care; any damage caused will be charged."
   ];
 
   const handleCheckboxChange = (term: string) => {
@@ -27,6 +30,7 @@ export default function QuotationsPage() {
     );
   };
 
+  // PDF උත්පාදනය
   const generatePDF = async () => {
     if (!quotationRef.current) return;
     const canvas = await html2canvas(quotationRef.current, { backgroundColor: "#ffffff", useCORS: true, scale: 2 });
@@ -38,7 +42,6 @@ export default function QuotationsPage() {
 
   const inputStyle = { width: "100%", padding: "8px", marginBottom: "10px", borderRadius: "5px", border: "1px solid #999", color: "#000", background: "#fff" };
   const labelStyle = { display: "block", marginBottom: "5px", fontWeight: "bold", color: "#000" };
-  const checkboxLabelStyle = { color: "#000", fontSize: "14px", cursor: "pointer" };
 
   return (
     <main style={{ minHeight: "100vh", background: "#f4f4f4", padding: "20px" }}>
@@ -54,27 +57,32 @@ export default function QuotationsPage() {
           <label style={labelStyle}>Event Name</label>
           <input value={eventName} onChange={(e) => setEventName(e.target.value)} style={inputStyle} />
           
-          <label style={labelStyle}>Event Date</label>
-          <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} style={inputStyle} />
-          
-          <label style={labelStyle}>Package Details</label>
-          <textarea value={packageName} onChange={(e) => setPackageName(e.target.value)} style={{...inputStyle, height: "80px"}} />
+          <div style={{ display: "flex", gap: "10px" }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Date</label>
+              <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} style={inputStyle} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Time</label>
+              <input type="text" placeholder="e.g. 6 PM - 12 AM" value={eventTime} onChange={(e) => setEventTime(e.target.value)} style={inputStyle} />
+            </div>
+          </div>
           
           <label style={labelStyle}>Total Amount (Rs.)</label>
           <input value={amount} onChange={(e) => setAmount(e.target.value)} style={inputStyle} />
           
           <label style={labelStyle}>Select Terms:</label>
           {defaultTermsList.map((term, index) => (
-            <div key={index} style={{ marginBottom: "8px" }}>
-              <label style={checkboxLabelStyle}>
-                <input type="checkbox" onChange={() => handleCheckboxChange(term)} style={{ marginRight: "10px" }} /> 
+            <div key={index} style={{ marginBottom: "5px" }}>
+              <label style={{ fontSize: "13px", cursor: "pointer", color: "#000" }}>
+                <input type="checkbox" onChange={() => handleCheckboxChange(term)} style={{ marginRight: "5px" }} /> 
                 {term}
               </label>
             </div>
           ))}
           
           <label style={labelStyle}>Edit/Add Terms:</label>
-          <textarea value={terms} onChange={(e) => setTerms(e.target.value)} style={{...inputStyle, height: "100px"}} />
+          <textarea value={terms} onChange={(e) => setTerms(e.target.value)} style={{...inputStyle, height: "80px"}} />
           
           <button onClick={generatePDF} style={{ width: "100%", padding: "12px", background: "#dc2626", color: "white", border: "none", borderRadius: "5px", cursor: "pointer", fontWeight: "bold" }}>Download PDF</button>
         </div>
@@ -82,13 +90,14 @@ export default function QuotationsPage() {
         {/* දකුණු පස Letterhead Preview */}
         <div ref={quotationRef} style={{ background: "#fff", color: "#000", width: "210mm", minHeight: "297mm", backgroundImage: "url('/irosh-letterhead.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
           <div style={{ paddingTop: "250px", paddingLeft: "50px", paddingRight: "50px" }}> 
-            <p><strong>To:</strong> {clientName} | <strong>Event:</strong> {eventName} | <strong>Date:</strong> {eventDate}</p>
+            <p><strong>To:</strong> {clientName} | <strong>Event:</strong> {eventName}</p>
+            <p><strong>Date:</strong> {eventDate} | <strong>Time:</strong> {eventTime}</p>
 
             <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}>
               <thead><tr style={{ background: "#eee" }}><th style={{ padding: "10px", border: "1px solid #999" }}>Description</th><th style={{ padding: "10px", border: "1px solid #999" }}>Amount (Rs)</th></tr></thead>
               <tbody>
                 <tr>
-                  <td style={{ padding: "20px", border: "1px solid #999", height: "300px", verticalAlign: "top" }}>
+                  <td style={{ padding: "20px", border: "1px solid #999", height: "200px", verticalAlign: "top" }}>
                     <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit" }}>{packageName}</pre>
                   </td>
                   <td style={{ padding: "20px", border: "1px solid #999", verticalAlign: "top", textAlign: "right" }}>{amount ? Number(amount).toLocaleString() : "-"}</td>
@@ -96,12 +105,11 @@ export default function QuotationsPage() {
               </tbody>
             </table>
 
-            {/* බුලට් පොයින්ට් සහිත Terms කොටස */}
             <div style={{ marginTop: "40px" }}>
               <p style={{ fontWeight: "bold", textDecoration: "underline", marginBottom: "15px" }}>Terms & Conditions:</p>
               <ul style={{ fontSize: "14px", paddingLeft: "20px", listStyleType: "disc" }}>
                 {terms.split('\n').filter(t => t.trim() !== "").map((term, i) => (
-                  <li key={i} style={{ marginBottom: "10px" }}>{term}</li>
+                  <li key={i} style={{ marginBottom: "8px" }}>{term}</li>
                 ))}
               </ul>
             </div>
