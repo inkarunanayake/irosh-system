@@ -37,14 +37,14 @@ export default function QuotationsPage() {
   };
 
   const inputStyle = { width: "100%", padding: "8px", marginBottom: "10px", borderRadius: "5px", border: "1px solid #999", color: "#000", background: "#fff" };
-  const labelStyle = { display: "block", marginBottom: "5px", fontWeight: "bold", color: "#000" }; // අකුරු කළු පාට කළා
-  const checkboxLabelStyle = { color: "#000", fontSize: "14px", cursor: "pointer" }; // Checkbox පාඨ කළු පාට කළා
+  const labelStyle = { display: "block", marginBottom: "5px", fontWeight: "bold", color: "#000" };
+  const checkboxLabelStyle = { color: "#000", fontSize: "14px", cursor: "pointer" };
 
   return (
     <main style={{ minHeight: "100vh", background: "#f4f4f4", padding: "20px" }}>
       <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
         
-        {/* Form */}
+        {/* වම් පස පෝරමය */}
         <div style={{ width: "400px", background: "#ffffff", padding: "20px", borderRadius: "10px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}>
           <h2 style={{ color: "#000", marginBottom: "15px" }}>Quotation Details</h2>
           
@@ -79,7 +79,7 @@ export default function QuotationsPage() {
           <button onClick={generatePDF} style={{ width: "100%", padding: "12px", background: "#dc2626", color: "white", border: "none", borderRadius: "5px", cursor: "pointer", fontWeight: "bold" }}>Download PDF</button>
         </div>
 
-        {/* Letterhead Preview */}
+        {/* දකුණු පස Letterhead Preview */}
         <div ref={quotationRef} style={{ background: "#fff", color: "#000", width: "210mm", minHeight: "297mm", backgroundImage: "url('/irosh-letterhead.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
           <div style={{ paddingTop: "250px", paddingLeft: "50px", paddingRight: "50px" }}> 
             <p><strong>To:</strong> {clientName} | <strong>Event:</strong> {eventName} | <strong>Date:</strong> {eventDate}</p>
@@ -96,11 +96,12 @@ export default function QuotationsPage() {
               </tbody>
             </table>
 
+            {/* බුලට් පොයින්ට් සහිත Terms කොටස */}
             <div style={{ marginTop: "40px" }}>
-              <p style={{ fontWeight: "bold", textDecoration: "underline" }}>Terms & Conditions:</p>
-              <ul style={{ fontSize: "14px", paddingLeft: "20px" }}>
+              <p style={{ fontWeight: "bold", textDecoration: "underline", marginBottom: "15px" }}>Terms & Conditions:</p>
+              <ul style={{ fontSize: "14px", paddingLeft: "20px", listStyleType: "disc" }}>
                 {terms.split('\n').filter(t => t.trim() !== "").map((term, i) => (
-                  <li key={i} style={{ marginBottom: "8px" }}>{term}</li>
+                  <li key={i} style={{ marginBottom: "10px" }}>{term}</li>
                 ))}
               </ul>
             </div>
