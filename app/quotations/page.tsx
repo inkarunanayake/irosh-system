@@ -10,19 +10,28 @@ export default function QuotationsPage() {
   const [clientName, setClientName] = useState("");
   const [eventName, setEventName] = useState("");
   const [eventDate, setEventDate] = useState("");
-  const [eventTime, setEventTime] = useState(""); // අලුතින් එක් කළා
+  const [eventTime, setEventTime] = useState("");
   const [packageName, setPackageName] = useState("");
   const [amount, setAmount] = useState("");
   const [terms, setTerms] = useState("");
+  const [newTerm, setNewTerm] = useState(""); // අලුතින් එකතු කරන Term එක සඳහා
 
-  // මෙතැනදී ඔබට ඕනෑම වෙලාවක Default Terms අලුතින් එකතු කිරීමට හෝ වෙනස් කිරීමට හැකියාව ඇත
-  const defaultTermsList = [
+  // Default Terms
+  const [defaultTermsList, setDefaultTermsList] = useState([
     "50% advance payment required for booking confirmation.",
     "The balance payment must be settled on the event day.",
-    "Meals should be provided for the technical crew (sound & light team).",
+    "Meals should be provided for the technical crew.",
     "Event time: Please specify the start and end time of the event.",
     "Equipment should be handled with care; any damage caused will be charged."
-  ];
+  ]);
+
+  // අලුත් Term එකක් ලැයිස්තුවට එකතු කිරීම
+  const addNewTerm = () => {
+    if (newTerm.trim() !== "") {
+      setDefaultTermsList([...defaultTermsList, newTerm]);
+      setNewTerm("");
+    }
+  };
 
   const handleCheckboxChange = (term: string) => {
     setTerms((prev) => 
@@ -30,7 +39,6 @@ export default function QuotationsPage() {
     );
   };
 
-  // PDF උත්පාදනය
   const generatePDF = async () => {
     if (!quotationRef.current) return;
     const canvas = await html2canvas(quotationRef.current, { backgroundColor: "#ffffff", useCORS: true, scale: 2 });
@@ -68,8 +76,12 @@ export default function QuotationsPage() {
             </div>
           </div>
           
-          <label style={labelStyle}>Total Amount (Rs.)</label>
-          <input value={amount} onChange={(e) => setAmount(e.target.value)} style={inputStyle} />
+          {/* අලුත් Term එකක් එකතු කිරීමේ කොටස */}
+          <label style={labelStyle}>Add New Default Term:</label>
+          <div style={{ display: "flex", gap: "5px", marginBottom: "10px" }}>
+            <input value={newTerm} onChange={(e) => setNewTerm(e.target.value)} style={inputStyle} placeholder="Type new term..." />
+            <button onClick={addNewTerm} style={{ padding: "8px", background: "#333", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}>Add</button>
+          </div>
           
           <label style={labelStyle}>Select Terms:</label>
           {defaultTermsList.map((term, index) => (
@@ -81,7 +93,7 @@ export default function QuotationsPage() {
             </div>
           ))}
           
-          <label style={labelStyle}>Edit/Add Terms:</label>
+          <label style={labelStyle}>Edit Terms:</label>
           <textarea value={terms} onChange={(e) => setTerms(e.target.value)} style={{...inputStyle, height: "80px"}} />
           
           <button onClick={generatePDF} style={{ width: "100%", padding: "12px", background: "#dc2626", color: "white", border: "none", borderRadius: "5px", cursor: "pointer", fontWeight: "bold" }}>Download PDF</button>
