@@ -11,6 +11,8 @@ export default function QuotationsPage() {
 
   // States
   const [clientName, setClientName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [eventName, setEventName] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
@@ -51,6 +53,8 @@ export default function QuotationsPage() {
     const newBooking = {
       id: Date.now(),
       full_name: clientName,
+      customer_phone: phone,
+      customer_email: email,
       location: eventName,
       event_date: eventDate,
       total_balance: amount,
@@ -63,7 +67,6 @@ export default function QuotationsPage() {
 
   return (
     <main style={{ minHeight: "100vh", background: "#f4f4f4", padding: "20px" }}>
-      {/* Admin Dashboard වෙත යන බොත්තම */}
       <button 
         onClick={() => router.push("/admin")} 
         style={{ marginBottom: "20px", padding: "10px", background: "#dc2626", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer", fontWeight: "bold" }}
@@ -72,12 +75,17 @@ export default function QuotationsPage() {
       </button>
       
       <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
-        {/* Input Form */}
         <div style={{ width: "400px", background: "#fff", padding: "20px", borderRadius: "10px", boxShadow: "0 2px 5px rgba(0,0,0,0.1)" }}>
           <h2 style={{ color: "#000", marginBottom: "15px" }}>Quotation Details</h2>
           <label style={{ fontWeight: "bold", color: "#000" }}>Client Name</label>
           <input value={clientName} onChange={(e) => setClientName(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", color: "#000" }} />
           
+          <label style={{ fontWeight: "bold", color: "#000" }}>Phone Number</label>
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", color: "#000" }} />
+          
+          <label style={{ fontWeight: "bold", color: "#000" }}>Email</label>
+          <input value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", color: "#000" }} />
+
           <label style={{ fontWeight: "bold", color: "#000" }}>Event Name</label>
           <input value={eventName} onChange={(e) => setEventName(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", color: "#000" }} />
           
@@ -114,10 +122,10 @@ export default function QuotationsPage() {
           <button onClick={generatePDF} style={{ marginTop: "15px", width: "100%", padding: "12px", background: "#dc2626", color: "#fff", border: "none", cursor: "pointer", fontWeight: "bold" }}>Download PDF & Save Booking</button>
         </div>
 
-        {/* Letterhead Preview */}
         <div ref={quotationRef} style={{ background: "#fff", color: "#000", width: "210mm", minHeight: "297mm", backgroundImage: "url('/irosh-letterhead.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
           <div style={{ paddingTop: "250px", paddingLeft: "50px", paddingRight: "50px" }}> 
-            <p><strong>To:</strong> {clientName} | <strong>Event:</strong> {eventName} | <strong>Date:</strong> {eventDate} | <strong>Time:</strong> {eventTime}</p>
+            <p><strong>To:</strong> {clientName} | <strong>Phone:</strong> {phone} | <strong>Email:</strong> {email}</p>
+            <p><strong>Event:</strong> {eventName} | <strong>Date:</strong> {eventDate} | <strong>Time:</strong> {eventTime}</p>
             
             <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}>
               <thead><tr style={{ background: "#eee" }}><th style={{ padding: "10px", border: "1px solid #999" }}>Description</th><th style={{ padding: "10px", border: "1px solid #999" }}>Amount (Rs)</th></tr></thead>
