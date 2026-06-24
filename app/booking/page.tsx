@@ -10,7 +10,6 @@ export default function BookingPage() {
   const [workers, setWorkers] = useState<any[]>([]);
   const [equipment, setEquipment] = useState<any[]>([]);
   const [selectedWorkers, setSelectedWorkers] = useState<Record<number, number[]>>({});
-  const [selectedEquip, setSelectedEquip] = useState<Record<number, any[]>>({});
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<any>({});
 
@@ -28,13 +27,12 @@ export default function BookingPage() {
   };
 
   const toggleWorker = (bookingId: number, workerId: number) => {
-    setSelectedWorkers(prev => ({ ...prev, [bookingId]: prev[bookingId]?.includes(workerId) ? prev[bookingId].filter(id => id !== workerId) : [...(prev[bookingId] || []), workerId] }));
-  };
-
-  const addEquipment = (bookingId: number, equipId: string) => {
-    const equip = equipment.find(e => e.id === Number(equipId));
-    if (!equip) return;
-    setSelectedEquip(prev => ({ ...prev, [bookingId]: [...(prev[bookingId] || []), { id: equip.id, brand: equip.brand, qty: 1 }] }));
+    setSelectedWorkers(prev => ({ 
+      ...prev, 
+      [bookingId]: prev[bookingId]?.includes(workerId) 
+        ? prev[bookingId].filter(id => id !== workerId) 
+        : [...(prev[bookingId] || []), workerId] 
+    }));
   };
 
   const saveBooking = async (id: number) => {
@@ -45,7 +43,7 @@ export default function BookingPage() {
 
   const confirmBooking = async (b: any) => {
     await supabase.from("bookings").update({ status: 'confirmed' }).eq("id", b.id);
-    const msg = `Hello ${b.full_name}, your booking is confirmed! Total: Rs.${b.total_balance}.`;
+    const msg = `Hello ${b.full_name}, your booking is confirmed!`;
     window.open(`https://wa.me/${b.customer_phone}?text=${encodeURIComponent(msg)}`, '_blank');
     fetchData();
   };
@@ -53,7 +51,7 @@ export default function BookingPage() {
   return (
     <main className="min-h-screen bg-gray-50 text-black p-8">
       <div className="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm">
-        <button onClick={() => router.push("/admin")} className="bg-red-600 text-white px-5 py-2 rounded-xl font-bold text-sm hover:bg-red-700">← Back to Admin Dashboard</button>
+        <button onClick={() => router.push("/admin")} className="bg-red-600 text-white px-5 py-2 rounded-xl font-bold text-sm hover:bg-red-700 transition">← Back to Admin Dashboard</button>
         <h1 className="text-2xl font-extrabold">Booking Management</h1>
       </div>
 
@@ -61,23 +59,22 @@ export default function BookingPage() {
         {bookings.map(b => (
           <div key={b.id} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
             {editingId === b.id ? (
-              <div className="space-y-3">
-                <input className="w-full bg-gray-100 p-2 rounded" defaultValue={b.full_name} onChange={e => setEditForm({...editForm, full_name: e.target.value})} placeholder="Name" />
-                <input className="w-full bg-gray-100 p-2 rounded" defaultValue={b.location} onChange={e => setEditForm({...editForm, location: e.target.value})} placeholder="Location" />
+              <div className="space-y-2">
+                <input className="w-full bg-gray-100 p-2 rounded text-xs" defaultValue={b.full_name} onChange={e => setEditForm({...editForm, full_name: e.target.value})} placeholder="Client Name" />
+                <input className="w-full bg-gray-100 p-2 rounded text-xs" defaultValue={b.customer_phone} onChange={e => setEditForm({...editForm, customer_phone: e.target.value})} placeholder="Phone" />
+                <input className="w-full bg-gray-100 p-2 rounded text-xs" defaultValue={b.customer_email} onChange={e => setEditForm({...editForm, customer_email: e.target.value})} placeholder="Email" />
+                <input className="w-full bg-gray-100 p-2 rounded text-xs" defaultValue={b.location} onChange={e => setEditForm({...editForm, location: e.target.value})} placeholder="Location" />
+                <input type="date" className="w-full bg-gray-100 p-2 rounded text-xs" defaultValue={b.event_date} onChange={e => setEditForm({...editForm, event_date: e.target.value})} />
+                <input type="number" className="w-full bg-gray-100 p-2 rounded text-xs" defaultValue={b.total_balance} onChange={e => setEditForm({...editForm, total_balance: Number(e.target.value)})} placeholder="Balance" />
                 
-                {/* Edit Mode Workers & Equip */}
-                <div className="border-t pt-2 mt-2">
-                  <p className="text-xs font-bold mb-1">Assign Workers:</p>
+                <div className="pt-2">
+                  <p className="text-[10px] font-bold">Assign Workers:</p>
                   <div className="flex flex-wrap gap-1 mb-2">
                     {workers.map(w => <button key={w.id} onClick={() => toggleWorker(b.id, w.id)} className={`px-2 py-1 text-[10px] rounded ${selectedWorkers[b.id]?.includes(w.id) ? 'bg-red-600 text-white' : 'bg-gray-100'}`}>{w.name}</button>)}
                   </div>
-                  <select className="w-full bg-gray-100 p-2 text-xs rounded" onChange={(e) => addEquipment(b.id, e.target.value)}>
-                    <option>Add Equipment...</option>
-                    {equipment.map(e => <option key={e.id} value={e.id}>{e.brand}</option>)}
-                  </select>
                 </div>
 
-                <div className="flex gap-2 mt-4">
+                <div className="flex gap-2 pt-4">
                   <button onClick={() => saveBooking(b.id)} className="flex-1 bg-green-600 text-white py-2 rounded-lg text-xs font-bold">Save</button>
                   <button onClick={() => confirmBooking(b)} className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-xs font-bold">Confirm & WA</button>
                 </div>
@@ -85,9 +82,10 @@ export default function BookingPage() {
             ) : (
               <div>
                 <h2 className="text-lg font-bold text-red-600">{b.full_name}</h2>
-                <p className="text-xs text-gray-500 mb-4">Date: {b.event_date} | Loc: {b.location}</p>
+                <p className="text-[10px] text-gray-600">📞 {b.customer_phone || 'N/A'}</p>
+                <p className="text-[10px] text-gray-600 mb-4">📧 {b.customer_email || 'N/A'}</p>
                 <div className="flex gap-2">
-                  <button onClick={() => {setEditingId(b.id); setEditForm(b);}} className="flex-1 bg-gray-200 py-2 rounded-lg text-xs font-bold">Edit Details</button>
+                  <button onClick={() => {setEditingId(b.id); setEditForm(b);}} className="flex-1 bg-gray-200 py-2 rounded-lg text-xs font-bold">Edit All Details</button>
                 </div>
               </div>
             )}
