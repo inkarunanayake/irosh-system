@@ -19,17 +19,16 @@ export default function BookingPage() {
   const fetchData = async () => {
     const { data: bData } = await supabase.from("bookings").select("*").order("event_date", { ascending: true });
     const localBookings = JSON.parse(localStorage.getItem("bookings") || "[]");
-    
     setBookings([...(bData || []), ...localBookings]);
     
     const { data: wData } = await supabase.from("users").select("id, name").eq("role", "worker");
     const { data: eData } = await supabase.from("equipment").select("*");
-    
     setWorkers(wData || []);
     setEquipment(eData || []);
   };
 
-  const toggleWorker = (bookingId: number, workerId: number, date: string) => {
+  // Logic Functions
+  const toggleWorker = (bookingId: number, workerId: number) => {
     setSelectedWorkers(prev => ({ ...prev, [bookingId]: prev[bookingId]?.includes(workerId) ? prev[bookingId].filter(id => id !== workerId) : [...(prev[bookingId] || []), workerId] }));
   };
 
@@ -52,18 +51,11 @@ export default function BookingPage() {
     }
   };
 
-  const confirmBooking = async (b: any) => {
-    await supabase.from("bookings").update({ status: 'confirmed' }).eq("id", b.id);
-    window.open(`https://wa.me/${b.customer_phone}?text=Your booking is confirmed!`, '_blank');
-    fetchData();
-  };
-
   return (
     <main className="min-h-screen bg-gray-50 text-black p-8">
-      <div className="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <button onClick={() => router.push("/admin")} className="bg-red-600 text-white px-5 py-2 rounded-xl font-bold text-sm hover:bg-red-700 transition">← Back to Admin Dashboard</button>
-        <h1 className="text-2xl font-extrabold text-gray-800">Booking Management</h1>
-        <button onClick={fetchData} className="bg-gray-200 px-5 py-2 rounded-xl text-sm font-semibold hover:bg-gray-300">Refresh</button>
+      <div className="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm">
+        <button onClick={() => router.push("/admin")} className="bg-red-600 text-white px-5 py-2 rounded-xl font-bold text-sm hover:bg-red-700">← Back to Admin Dashboard</button>
+        <h1 className="text-2xl font-extrabold">Booking Management</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -71,16 +63,19 @@ export default function BookingPage() {
           <div key={b.id} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
             {editingId === b.id ? (
               <div className="space-y-3">
-                <input className="w-full bg-gray-100 p-2 rounded text-sm" defaultValue={b.full_name} onChange={e => setEditForm({...editForm, full_name: e.target.value})} />
-                <button onClick={() => updateBooking(b.id)} className="bg-green-600 text-white w-full py-2 rounded">Save</button>
+                <input className="w-full bg-gray-100 p-2 rounded" defaultValue={b.full_name} onChange={e => setEditForm({...editForm, full_name: e.target.value})} placeholder="Name" />
+                <input className="w-full bg-gray-100 p-2 rounded" defaultValue={b.location} onChange={e => setEditForm({...editForm, location: e.target.value})} placeholder="Location" />
+                <input type="date" className="w-full bg-gray-100 p-2 rounded" defaultValue={b.event_date} onChange={e => setEditForm({...editForm, event_date: e.target.value})} />
+                <input type="number" className="w-full bg-gray-100 p-2 rounded" defaultValue={b.total_balance} onChange={e => setEditForm({...editForm, total_balance: Number(e.target.value)})} placeholder="Balance" />
+                <button onClick={() => updateBooking(b.id)} className="bg-green-600 text-white w-full py-2 rounded">Save Changes</button>
               </div>
             ) : (
               <div>
-                <h2 className="text-lg font-bold text-gray-900">{b.full_name}</h2>
-                <p className="text-xs text-gray-500 mb-4">Date: {b.event_date} | Status: {b.status || 'Pending'}</p>
+                <h2 className="text-lg font-bold text-red-600">{b.full_name}</h2>
+                <p className="text-xs text-gray-500 mb-2">Date: {b.event_date} | Loc: {b.location}</p>
                 
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {workers.map(w => <button key={w.id} onClick={() => toggleWorker(b.id, w.id, b.event_date)} className={`px-2 py-1 text-[10px] rounded ${selectedWorkers[b.id]?.includes(w.id) ? 'bg-red-600 text-white' : 'bg-gray-100'}`}>{w.name}</button>)}
+                  {workers.map(w => <button key={w.id} onClick={() => toggleWorker(b.id, w.id)} className={`px-2 py-1 text-[10px] rounded ${selectedWorkers[b.id]?.includes(w.id) ? 'bg-red-600 text-white' : 'bg-gray-100'}`}>{w.name}</button>)}
                 </div>
 
                 <select className="w-full bg-gray-100 p-2 text-xs rounded mb-3" onChange={(e) => addEquipment(b.id, e.target.value)}>
@@ -89,8 +84,7 @@ export default function BookingPage() {
                 </select>
 
                 <div className="flex gap-2 pt-4 border-t">
-                  <button onClick={() => confirmBooking(b)} className="flex-1 bg-black text-white py-2 rounded-lg text-xs font-bold hover:bg-gray-800">Confirm & WA</button>
-                  <button onClick={() => {setEditingId(b.id); setEditForm(b);}} className="flex-1 bg-gray-100 py-2 rounded-lg text-xs font-bold hover:bg-gray-200">Edit</button>
+                  <button onClick={() => {setEditingId(b.id); setEditForm(b);}} className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-xs font-bold">Edit All</button>
                   <button onClick={() => deleteBooking(b.id)} className="flex-1 bg-red-100 text-red-600 py-2 rounded-lg text-xs font-bold">Delete</button>
                 </div>
               </div>
