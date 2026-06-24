@@ -47,7 +47,7 @@ export default function QuotationsPage() {
     pdf.addImage(imgData, "PNG", 0, 0, 210, 297); 
     pdf.save(`Quotation_${clientName || "Event"}.pdf`);
     
-    // Save to LocalStorage
+    // Save to LocalStorage for BookingPage
     const newBooking = {
       id: Date.now(),
       full_name: clientName,
@@ -58,7 +58,7 @@ export default function QuotationsPage() {
     };
     const existing = JSON.parse(localStorage.getItem("bookings") || "[]");
     localStorage.setItem("bookings", JSON.stringify([...existing, newBooking]));
-    alert("Quotation saved & Booking added to Pending!");
+    alert("Quotation downloaded & Booking saved as Pending!");
   };
 
   return (
@@ -66,30 +66,33 @@ export default function QuotationsPage() {
       <button onClick={() => router.push("/")} style={{ marginBottom: "20px", padding: "10px", background: "#333", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}>← Back Home</button>
       
       <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
-        {/* Form */}
+        {/* Input Form */}
         <div style={{ width: "400px", background: "#fff", padding: "20px", borderRadius: "10px", boxShadow: "0 2px 5px rgba(0,0,0,0.1)" }}>
           <h2 style={{ color: "#000", marginBottom: "15px" }}>Quotation Details</h2>
-          <label style={{ display: "block", fontWeight: "bold", color: "#000" }}>Client Name</label>
+          <label style={{ fontWeight: "bold", color: "#000" }}>Client Name</label>
           <input value={clientName} onChange={(e) => setClientName(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", color: "#000" }} />
           
-          <label style={{ display: "block", fontWeight: "bold", color: "#000" }}>Event Name</label>
+          <label style={{ fontWeight: "bold", color: "#000" }}>Event Name</label>
           <input value={eventName} onChange={(e) => setEventName(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", color: "#000" }} />
           
           <div style={{ display: "flex", gap: "10px" }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: "block", fontWeight: "bold", color: "#000" }}>Date</label>
+              <label style={{ fontWeight: "bold", color: "#000" }}>Date</label>
               <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} style={{ width: "100%", padding: "8px", color: "#000" }} />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: "block", fontWeight: "bold", color: "#000" }}>Time</label>
+              <label style={{ fontWeight: "bold", color: "#000" }}>Time</label>
               <input value={eventTime} onChange={(e) => setEventTime(e.target.value)} style={{ width: "100%", padding: "8px", color: "#000" }} />
             </div>
           </div>
 
-          <label style={{ display: "block", marginTop: "10px", fontWeight: "bold", color: "#000" }}>Total Amount (Rs.)</label>
+          <label style={{ marginTop: "10px", display: "block", fontWeight: "bold", color: "#000" }}>Package Details</label>
+          <textarea value={packageName} onChange={(e) => setPackageName(e.target.value)} style={{ width: "100%", height: "80px", color: "#000" }} />
+
+          <label style={{ marginTop: "10px", display: "block", fontWeight: "bold", color: "#000" }}>Total Amount (Rs.)</label>
           <input value={amount} onChange={(e) => setAmount(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", color: "#000" }} />
           
-          <label style={{ display: "block", fontWeight: "bold", color: "#000" }}>Select Terms:</label>
+          <label style={{ fontWeight: "bold", color: "#000" }}>Select Terms:</label>
           {defaultTermsList.map((term, index) => (
             <div key={index}><label style={{ fontSize: "13px", color: "#000" }}><input type="checkbox" onChange={() => handleCheckboxChange(term)} /> {term}</label></div>
           ))}
@@ -99,16 +102,29 @@ export default function QuotationsPage() {
             <button onClick={addNewTerm} style={{ padding: "5px", background: "#333", color: "#fff" }}>Add</button>
           </div>
 
-          <label style={{ display: "block", marginTop: "10px", fontWeight: "bold", color: "#000" }}>Edit Terms:</label>
+          <label style={{ marginTop: "10px", display: "block", fontWeight: "bold", color: "#000" }}>Edit Terms:</label>
           <textarea value={terms} onChange={(e) => setTerms(e.target.value)} style={{ width: "100%", height: "80px", color: "#000" }} />
           
           <button onClick={generatePDF} style={{ marginTop: "15px", width: "100%", padding: "12px", background: "#dc2626", color: "#fff", border: "none", cursor: "pointer", fontWeight: "bold" }}>Download PDF & Save Booking</button>
         </div>
 
-        {/* Preview */}
+        {/* Letterhead Preview */}
         <div ref={quotationRef} style={{ background: "#fff", color: "#000", width: "210mm", minHeight: "297mm", backgroundImage: "url('/irosh-letterhead.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
           <div style={{ paddingTop: "250px", paddingLeft: "50px", paddingRight: "50px" }}> 
             <p><strong>To:</strong> {clientName} | <strong>Event:</strong> {eventName} | <strong>Date:</strong> {eventDate} | <strong>Time:</strong> {eventTime}</p>
+            
+            <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}>
+              <thead><tr style={{ background: "#eee" }}><th style={{ padding: "10px", border: "1px solid #999" }}>Description</th><th style={{ padding: "10px", border: "1px solid #999" }}>Amount (Rs)</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td style={{ padding: "20px", border: "1px solid #999", height: "300px", verticalAlign: "top" }}>
+                    <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit" }}>{packageName}</pre>
+                  </td>
+                  <td style={{ padding: "20px", border: "1px solid #999", verticalAlign: "top", textAlign: "right" }}>{amount ? Number(amount).toLocaleString() : "-"}</td>
+                </tr>
+              </tbody>
+            </table>
+
             <div style={{ marginTop: "40px" }}>
               <p style={{ fontWeight: "bold", textDecoration: "underline" }}>Terms & Conditions:</p>
               <ul style={{ paddingLeft: "20px", listStyleType: "disc" }}>
