@@ -27,6 +27,28 @@ export default function BookingPage() {
     setEquipment(eData || []);
   };
 
+  // Multiple Workers Add/Remove
+  const toggleWorker = (bId: number, worker: any) => {
+    setSelectedWorkers(prev => {
+      const current = prev[bId] || [];
+      const exists = current.find(w => w.id === worker.id);
+      return { ...prev, [bId]: exists ? current.filter(w => w.id !== worker.id) : [...current, worker] };
+    });
+  };
+
+  // Multiple Equipment Add Logic (මකා නොදමා එකතු කිරීම)
+  const addEquip = (bId: number, equipId: string) => {
+    const equip = equipment.find(e => e.id == equipId);
+    if (!equip) return;
+    
+    setSelectedEquip(prev => {
+      const current = prev[bId] || [];
+      // දැනටමත් තියෙන එකක් නම් නැවත එකතු නොකරයි
+      if (current.find(e => e.id == equip.id)) return prev;
+      return { ...prev, [bId]: [...current, equip] };
+    });
+  };
+
   const handleSave = async (id: number) => {
     const original = editForm.total_balance || 0;
     const disc = editForm.discount || 0;
@@ -35,13 +57,13 @@ export default function BookingPage() {
     await supabase.from("bookings").update({ 
       ...editForm, 
       final_balance: final,
-      workers: selectedWorkers[id] || [],
-      equipment: selectedEquip[id] || []
+      workers: selectedWorkers[id],
+      equipment: selectedEquip[id]
     }).eq("id", id);
     
     setEditingId(null);
     fetchData();
-    window.print(); // බිල්පත Print කිරීමට
+    window.print();
   };
 
   return (
@@ -57,36 +79,31 @@ export default function BookingPage() {
             {editingId === b.id ? (
               <div className="space-y-3">
                 <input className="w-full border p-2 text-sm" defaultValue={b.full_name} onChange={e => setEditForm({...editForm, full_name: e.target.value})} placeholder="Client Name" />
-                <input className="w-full border p-2 text-sm" defaultValue={b.customer_phone} onChange={e => setEditForm({...editForm, customer_phone: e.target.value})} placeholder="Phone" />
-                <input className="w-full border p-2 text-sm" defaultValue={b.customer_email} onChange={e => setEditForm({...editForm, customer_email: e.target.value})} placeholder="Email" />
-                <input className="w-full border p-2 text-sm" defaultValue={b.location} onChange={e => setEditForm({...editForm, location: e.target.value})} placeholder="Location" />
-                <input type="date" className="w-full border p-2 text-sm" defaultValue={b.event_date} onChange={e => setEditForm({...editForm, event_date: e.target.value})} />
-                <input type="number" className="w-full border p-2 text-sm" defaultValue={b.total_balance} onChange={e => setEditForm({...editForm, total_balance: Number(e.target.value)})} placeholder="Amount" />
-                <input type="number" className="w-full border p-2 text-sm" defaultValue={b.discount || 0} onChange={e => setEditForm({...editForm, discount: Number(e.target.value)})} placeholder="Discount %" />
+                <input className="w-full border p-2 text-sm" defaultValue={b.total_balance} onChange={e => setEditForm({...editForm, total_balance: Number(e.target.value)})} placeholder="Amount" />
+                <input className="w-full border p-2 text-sm" defaultValue={b.discount || 0} onChange={e => setEditForm({...editForm, discount: Number(e.target.value)})} placeholder="Discount %" />
                 
-                {/* Workers selection */}
                 <div className="text-xs font-bold">Workers:</div>
                 <div className="flex flex-wrap gap-1">
                   {workers.map(w => (
-                    <button key={w.id} onClick={() => setSelectedWorkers(prev => ({...prev, [b.id]: [...(prev[b.id] || []), w]}))} className="bg-gray-200 p-1 text-[10px] rounded hover:bg-gray-300">{w.name}</button>
+                    <button key={w.id} onClick={() => toggleWorker(b.id, w)} className={`p-1 text-[10px] rounded border ${selectedWorkers[b.id]?.find(sw => sw.id === w.id) ? 'bg-black text-white' : 'bg-gray-200'}`}>{w.name}</button>
                   ))}
                 </div>
 
-                {/* Equipment selection */}
-                <select className="w-full border p-2 text-sm" onChange={(e) => setSelectedEquip(prev => ({...prev, [b.id]: [...(prev[b.id] || []), equipment.find(eq => eq.id == e.target.value)]}))}>
+                <div className="text-xs font-bold">Equipment:</div>
+                <select className="w-full border p-2 text-sm" onChange={(e) => addEquip(b.id, e.target.value)}>
                   <option>Select Equipment</option>
                   {equipment.map(e => <option key={e.id} value={e.id}>{e.brand}</option>)}
                 </select>
+                
+                <div className="text-[10px] text-gray-500">Selected: {selectedEquip[b.id]?.map(e => e.brand).join(", ")}</div>
 
                 <button onClick={() => handleSave(b.id)} className="w-full bg-black text-white py-2 rounded font-bold">Save & Print Bill</button>
               </div>
             ) : (
               <div>
                 <h2 className="font-bold text-lg">{b.full_name}</h2>
-                <p className="text-sm">Phone: {b.customer_phone} | Email: {b.customer_email}</p>
-                <p className="text-sm">Loc: {b.location} | Date: {b.event_date}</p>
-                <p className="text-sm font-bold mt-2">Final Balance: Rs. {b.final_balance || b.total_balance}</p>
-                <button onClick={() => {setEditingId(b.id); setEditForm(b);}} className="mt-4 text-blue-600 underline">Edit Full Details</button>
+                <p className="text-sm">Final Balance: Rs. {b.final_balance || b.total_balance}</p>
+                <button onClick={() => {setEditingId(b.id); setEditForm(b);}} className="mt-4 text-blue-600 underline">Edit Details</button>
               </div>
             )}
           </div>
