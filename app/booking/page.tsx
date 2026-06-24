@@ -10,8 +10,7 @@ export default function BookingPage() {
   const [workers, setWorkers] = useState<any[]>([]);
   const [equipment, setEquipment] = useState<any[]>([]);
   
-  // දත්ත තබාගැනීම සඳහා State
-  const [selectedWorkers, setSelectedWorkers] = useState<Record<number, number[]>>({});
+  const [selectedWorkers, setSelectedWorkers] = useState<Record<number, any[]>>({});
   const [selectedEquip, setSelectedEquip] = useState<Record<number, any[]>>({});
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<any>({});
@@ -19,7 +18,7 @@ export default function BookingPage() {
   useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
-    const { data: bData } = await supabase.from("bookings").select("*").order("event_date", { ascending: true });
+    const { data: bData } = await supabase.from("bookings").select("*");
     const localBookings = JSON.parse(localStorage.getItem("bookings") || "[]");
     setBookings([...(bData || []), ...localBookings]);
     
@@ -29,87 +28,81 @@ export default function BookingPage() {
     setEquipment(eData || []);
   };
 
-  // පැරණි ඒවා තබාගෙන අලුතින් Workers එකතු කිරීම
-  const toggleWorker = (bookingId: number, workerId: number) => {
+  const toggleWorker = (bId: number, worker: any) => {
     setSelectedWorkers(prev => {
-        const currentList = prev[bookingId] || [];
-        const updatedList = currentList.includes(workerId) 
-            ? currentList.filter(id => id !== workerId) 
-            : [...currentList, workerId];
-        return { ...prev, [bookingId]: updatedList };
+      const current = prev[bId] || [];
+      const exists = current.find(w => w.id === worker.id);
+      return { 
+        ...prev, 
+        [bId]: exists ? current.filter(w => w.id !== worker.id) : [...current, worker] 
+      };
     });
   };
 
-  // පැරණි ඒවා තබාගෙන අලුතින් Equipment එකතු කිරීම
-  const addEquipment = (bookingId: number, equipId: string) => {
-    const equip = equipment.find(e => e.id === Number(equipId));
+  const addEquip = (bId: number, equip: any) => {
     if (!equip) return;
     setSelectedEquip(prev => {
-        const currentEquip = prev[bookingId] || [];
-        if (currentEquip.find(e => e.id === equip.id)) return prev;
-        return { ...prev, [bookingId]: [...currentEquip, { id: equip.id, brand: equip.brand }] };
+      const current = prev[bId] || [];
+      if (current.find(e => e.id === equip.id)) return prev;
+      return { ...prev, [bId]: [...current, equip] };
     });
   };
 
-  // Discount ගණනය කර අවසාන මුදල සුරැකීම
-  const saveBooking = async (id: number) => {
-    const discount = editForm.discount || 0;
-    const originalAmount = editForm.total_balance || 0;
-    const finalAmount = originalAmount - (originalAmount * (discount / 100));
+  const saveFinalBill = async (id: number) => {
+    const original = editForm.total_balance || 0;
+    const disc = editForm.discount || 0;
+    const final = original - (original * (disc / 100));
     
     await supabase.from("bookings").update({ 
-        ...editForm, 
-        final_balance: finalAmount,
-        selected_workers: selectedWorkers[id],
-        selected_equipment: selectedEquip[id]
+      ...editForm, 
+      final_balance: final, 
+      workers: selectedWorkers[id], 
+      equipment: selectedEquip[id] 
     }).eq("id", id);
     
     setEditingId(null);
     fetchData();
-  };
-
-  const confirmBooking = async (b: any) => {
-    const finalAmount = b.final_balance || b.total_balance;
-    const msg = `Hello ${b.full_name}, your booking is confirmed! Final Bill: Rs.${finalAmount}.`;
-    window.open(`https://wa.me/${b.customer_phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.print();
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 text-black p-8">
-      <div className="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm">
-        <button onClick={() => router.push("/admin")} className="bg-red-600 text-white px-5 py-2 rounded-xl font-bold text-sm hover:bg-red-700">← Back</button>
-        <h1 className="text-2xl font-extrabold">Booking Management</h1>
+    <main className="p-8 bg-gray-50 min-h-screen">
+      <div className="flex justify-between mb-6">
+        <h1 className="text-2xl font-bold">Booking Management</h1>
+        <button onClick={() => router.push("/admin")} className="bg-red-600 text-white px-4 py-2 rounded">Back to Dashboard</button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {bookings.map(b => (
-          <div key={b.id} className="bg-white p-6 rounded-2xl border shadow-sm">
+          <div key={b.id} className="bg-white p-6 rounded-xl border shadow-sm">
             {editingId === b.id ? (
-              <div className="space-y-2">
-                <input className="w-full bg-gray-100 p-2 rounded text-xs" defaultValue={b.full_name} onChange={e => setEditForm({...editForm, full_name: e.target.value})} placeholder="Name" />
-                <input type="number" className="w-full bg-gray-100 p-2 rounded text-xs" defaultValue={b.total_balance} onChange={e => setEditForm({...editForm, total_balance: Number(e.target.value)})} placeholder="Original Amount" />
-                <input type="number" className="w-full bg-gray-100 p-2 rounded text-xs" onChange={e => setEditForm({...editForm, discount: Number(e.target.value)})} placeholder="Discount %" />
+              <div className="space-y-3">
+                <input className="w-full border p-2 text-sm" defaultValue={b.full_name} onChange={e => setEditForm({...editForm, full_name: e.target.value})} placeholder="Client Name" />
+                <input className="w-full border p-2 text-sm" defaultValue={b.customer_phone} onChange={e => setEditForm({...editForm, customer_phone: e.target.value})} placeholder="Phone" />
+                <input type="number" className="w-full border p-2 text-sm" defaultValue={b.total_balance} onChange={e => setEditForm({...editForm, total_balance: Number(e.target.value)})} placeholder="Amount" />
+                <input type="number" className="w-full border p-2 text-sm" defaultValue={b.discount} onChange={e => setEditForm({...editForm, discount: Number(e.target.value)})} placeholder="Discount %" />
                 
-                <p className="text-[10px] font-bold mt-2">Assign Workers:</p>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {workers.map(w => <button key={w.id} onClick={() => toggleWorker(b.id, w.id)} className={`px-2 py-1 text-[10px] rounded ${selectedWorkers[b.id]?.includes(w.id) ? 'bg-red-600 text-white' : 'bg-gray-100'}`}>{w.name}</button>)}
+                <div className="flex flex-wrap gap-2">
+                  <p className="text-xs font-bold w-full">Workers:</p>
+                  {workers.map(w => (
+                    <button key={w.id} onClick={() => toggleWorker(b.id, w)} className={`p-1 text-xs border ${selectedWorkers[b.id]?.find(sw => sw.id === w.id) ? 'bg-black text-white' : ''}`}>
+                      {w.name}
+                    </button>
+                  ))}
                 </div>
 
-                <select className="w-full bg-gray-100 p-2 text-xs rounded" onChange={(e) => addEquipment(b.id, e.target.value)}>
-                  <option>Add Equipment...</option>
+                <select className="w-full border p-2 text-sm" onChange={(e) => addEquip(b.id, equipment.find(eq => eq.id == e.target.value))}>
+                  <option>Select Equipment</option>
                   {equipment.map(e => <option key={e.id} value={e.id}>{e.brand}</option>)}
                 </select>
 
-                <button onClick={() => saveBooking(b.id)} className="bg-green-600 text-white w-full py-2 rounded text-xs font-bold">Save Final Bill</button>
+                <button onClick={() => saveFinalBill(b.id)} className="w-full bg-black text-white py-2 rounded">Save & Print Bill</button>
               </div>
             ) : (
               <div>
-                <h2 className="text-lg font-bold text-red-600">{b.full_name}</h2>
-                <p className="text-xs text-gray-500">Date: {b.event_date} | Final: Rs.{b.final_balance || b.total_balance}</p>
-                <div className="flex gap-2 mt-4">
-                  <button onClick={() => {setEditingId(b.id); setEditForm(b);}} className="flex-1 bg-gray-200 py-2 rounded text-xs font-bold">Edit</button>
-                  <button onClick={() => confirmBooking(b)} className="flex-1 bg-blue-600 text-white py-2 rounded text-xs font-bold">Confirm & WA</button>
-                </div>
+                <h2 className="font-bold">{b.full_name}</h2>
+                <p className="text-sm">Final Balance: Rs. {b.final_balance || b.total_balance}</p>
+                <button onClick={() => {setEditingId(b.id); setEditForm(b);}} className="mt-4 text-blue-600 underline">Edit Full Details</button>
               </div>
             )}
           </div>
