@@ -15,16 +15,24 @@ export default function QuotationsPage() {
 
   const generatePDF = async () => {
     if (!quotationRef.current) return;
+
+    // Canvas එක හරියටම පිටුව වගේම හදන්න
     const canvas = await html2canvas(quotationRef.current, { 
         backgroundColor: "#ffffff", 
         useCORS: true, 
-        scale: 2 
+        scale: 2,
+        logging: false,
+        width: quotationRef.current.offsetWidth,
+        height: quotationRef.current.offsetHeight
     });
+
     const imgData = canvas.toDataURL("image/png");
+    
+    // A4 ප්‍රමාණය (210mm x 297mm)
     const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    
+    // මායිම් නොමැතිව හරියටම පිටුවට ගැළපීමට 0,0,210,297 යොදන්න
+    pdf.addImage(imgData, "PNG", 0, 0, 210, 297); 
     pdf.save(`Quotation_${clientName || "Event"}.pdf`);
   };
 
@@ -32,7 +40,7 @@ export default function QuotationsPage() {
     <main style={{ minHeight: "100vh", background: "#000", color: "#fff", padding: "20px" }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
         
-        {/* පෝරමය (Form) */}
+        {/* පෝරමය */}
         <div style={{ background: "#18181b", padding: "20px", borderRadius: "15px" }}>
           <h2 style={{ marginBottom: "20px" }}>Generate Quotation</h2>
           <input placeholder="Client Name" value={clientName} onChange={(e) => setClientName(e.target.value)} style={{ width: "100%", padding: "10px", marginBottom: "10px", borderRadius: "5px", color: "#000" }} />
@@ -43,21 +51,23 @@ export default function QuotationsPage() {
           <button onClick={generatePDF} style={{ width: "100%", padding: "15px", background: "#dc2626", color: "white", border: "none", cursor: "pointer", borderRadius: "5px", fontWeight: "bold" }}>Download PDF</button>
         </div>
 
-        {/* Letterhead Preview */}
+        {/* Letterhead Preview - Alignment සැකසීම */}
         <div ref={quotationRef} style={{ 
           background: "#fff", 
           color: "#000", 
-          padding: "40px", 
-          minHeight: "842px", 
-          width: "100%",
+          width: "210mm", 
+          height: "297mm", 
           position: "relative",
+          margin: "0", 
+          padding: "0",
           backgroundImage: "url('/irosh-letterhead.png')", 
-          backgroundSize: "contain", 
-          backgroundPosition: "top center", 
+          backgroundSize: "cover", 
+          backgroundPosition: "center", 
           backgroundRepeat: "no-repeat" 
         }}>
-          <div style={{ marginTop: "220px", width: "100%" }}> 
-            <div style={{ maxWidth: "90%", margin: "0 auto" }}>
+          {/* අන්තර්ගතය රූපයේ උඩින් තැබීමට - පින්තූරයේ ඉහළ ඉඩ අනුව මෙය සකසන්න */}
+          <div style={{ paddingTop: "250px", width: "100%" }}> 
+            <div style={{ maxWidth: "80%", margin: "0 auto" }}>
               <p><strong>To:</strong> {clientName}</p>
               <p><strong>Date:</strong> {eventDate}</p>
               
