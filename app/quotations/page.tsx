@@ -63,7 +63,13 @@ export default function QuotationsPage() {
 
   return (
     <main style={{ minHeight: "100vh", background: "#f4f4f4", padding: "20px" }}>
-      <button onClick={() => router.push("/")} style={{ marginBottom: "20px", padding: "10px", background: "#333", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}>← Back Home</button>
+      {/* Admin Dashboard වෙත යන බොත්තම */}
+      <button 
+        onClick={() => router.push("/admin")} 
+        style={{ marginBottom: "20px", padding: "10px", background: "#dc2626", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer", fontWeight: "bold" }}
+      >
+        ← Back to Admin Dashboard
+      </button>
       
       <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
         {/* Input Form */}
