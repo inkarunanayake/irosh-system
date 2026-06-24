@@ -3,10 +3,13 @@
 import { useRef, useState } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { useRouter } from "next/navigation";
 
 export default function QuotationsPage() {
+  const router = useRouter();
   const quotationRef = useRef<HTMLDivElement>(null);
 
+  // States
   const [clientName, setClientName] = useState("");
   const [eventName, setEventName] = useState("");
   const [eventDate, setEventDate] = useState("");
@@ -14,9 +17,7 @@ export default function QuotationsPage() {
   const [packageName, setPackageName] = useState("");
   const [amount, setAmount] = useState("");
   const [terms, setTerms] = useState("");
-  const [newTerm, setNewTerm] = useState(""); // අලුතින් එකතු කරන Term එක සඳහා
-
-  // Default Terms
+  const [newTerm, setNewTerm] = useState("");
   const [defaultTermsList, setDefaultTermsList] = useState([
     "50% advance payment required for booking confirmation.",
     "The balance payment must be settled on the event day.",
@@ -25,7 +26,6 @@ export default function QuotationsPage() {
     "Equipment should be handled with care; any damage caused will be charged."
   ]);
 
-  // අලුත් Term එකක් ලැයිස්තුවට එකතු කිරීම
   const addNewTerm = () => {
     if (newTerm.trim() !== "") {
       setDefaultTermsList([...defaultTermsList, newTerm]);
@@ -46,83 +46,73 @@ export default function QuotationsPage() {
     const pdf = new jsPDF("p", "mm", "a4");
     pdf.addImage(imgData, "PNG", 0, 0, 210, 297); 
     pdf.save(`Quotation_${clientName || "Event"}.pdf`);
+    
+    // Save to LocalStorage
+    const newBooking = {
+      id: Date.now(),
+      full_name: clientName,
+      location: eventName,
+      event_date: eventDate,
+      total_balance: amount,
+      status: "Pending"
+    };
+    const existing = JSON.parse(localStorage.getItem("bookings") || "[]");
+    localStorage.setItem("bookings", JSON.stringify([...existing, newBooking]));
+    alert("Quotation saved & Booking added to Pending!");
   };
-
-  const inputStyle = { width: "100%", padding: "8px", marginBottom: "10px", borderRadius: "5px", border: "1px solid #999", color: "#000", background: "#fff" };
-  const labelStyle = { display: "block", marginBottom: "5px", fontWeight: "bold", color: "#000" };
 
   return (
     <main style={{ minHeight: "100vh", background: "#f4f4f4", padding: "20px" }}>
+      <button onClick={() => router.push("/")} style={{ marginBottom: "20px", padding: "10px", background: "#333", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}>← Back Home</button>
+      
       <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
-        
-        {/* වම් පස පෝරමය */}
-        <div style={{ width: "400px", background: "#ffffff", padding: "20px", borderRadius: "10px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}>
+        {/* Form */}
+        <div style={{ width: "400px", background: "#fff", padding: "20px", borderRadius: "10px", boxShadow: "0 2px 5px rgba(0,0,0,0.1)" }}>
           <h2 style={{ color: "#000", marginBottom: "15px" }}>Quotation Details</h2>
+          <label style={{ display: "block", fontWeight: "bold", color: "#000" }}>Client Name</label>
+          <input value={clientName} onChange={(e) => setClientName(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", color: "#000" }} />
           
-          <label style={labelStyle}>Client Name</label>
-          <input value={clientName} onChange={(e) => setClientName(e.target.value)} style={inputStyle} />
-          
-          <label style={labelStyle}>Event Name</label>
-          <input value={eventName} onChange={(e) => setEventName(e.target.value)} style={inputStyle} />
+          <label style={{ display: "block", fontWeight: "bold", color: "#000" }}>Event Name</label>
+          <input value={eventName} onChange={(e) => setEventName(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", color: "#000" }} />
           
           <div style={{ display: "flex", gap: "10px" }}>
             <div style={{ flex: 1 }}>
-              <label style={labelStyle}>Date</label>
-              <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} style={inputStyle} />
+              <label style={{ display: "block", fontWeight: "bold", color: "#000" }}>Date</label>
+              <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} style={{ width: "100%", padding: "8px", color: "#000" }} />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={labelStyle}>Time</label>
-              <input type="text" placeholder="e.g. 6 PM - 12 AM" value={eventTime} onChange={(e) => setEventTime(e.target.value)} style={inputStyle} />
+              <label style={{ display: "block", fontWeight: "bold", color: "#000" }}>Time</label>
+              <input value={eventTime} onChange={(e) => setEventTime(e.target.value)} style={{ width: "100%", padding: "8px", color: "#000" }} />
             </div>
           </div>
+
+          <label style={{ display: "block", marginTop: "10px", fontWeight: "bold", color: "#000" }}>Total Amount (Rs.)</label>
+          <input value={amount} onChange={(e) => setAmount(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", color: "#000" }} />
           
-          {/* අලුත් Term එකක් එකතු කිරීමේ කොටස */}
-          <label style={labelStyle}>Add New Default Term:</label>
-          <div style={{ display: "flex", gap: "5px", marginBottom: "10px" }}>
-            <input value={newTerm} onChange={(e) => setNewTerm(e.target.value)} style={inputStyle} placeholder="Type new term..." />
-            <button onClick={addNewTerm} style={{ padding: "8px", background: "#333", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}>Add</button>
-          </div>
-          
-          <label style={labelStyle}>Select Terms:</label>
+          <label style={{ display: "block", fontWeight: "bold", color: "#000" }}>Select Terms:</label>
           {defaultTermsList.map((term, index) => (
-            <div key={index} style={{ marginBottom: "5px" }}>
-              <label style={{ fontSize: "13px", cursor: "pointer", color: "#000" }}>
-                <input type="checkbox" onChange={() => handleCheckboxChange(term)} style={{ marginRight: "5px" }} /> 
-                {term}
-              </label>
-            </div>
+            <div key={index}><label style={{ fontSize: "13px", color: "#000" }}><input type="checkbox" onChange={() => handleCheckboxChange(term)} /> {term}</label></div>
           ))}
           
-          <label style={labelStyle}>Edit Terms:</label>
-          <textarea value={terms} onChange={(e) => setTerms(e.target.value)} style={{...inputStyle, height: "80px"}} />
+          <div style={{ marginTop: "10px" }}>
+            <input value={newTerm} onChange={(e) => setNewTerm(e.target.value)} placeholder="Add new term..." style={{ width: "70%", padding: "5px", color: "#000" }} />
+            <button onClick={addNewTerm} style={{ padding: "5px", background: "#333", color: "#fff" }}>Add</button>
+          </div>
+
+          <label style={{ display: "block", marginTop: "10px", fontWeight: "bold", color: "#000" }}>Edit Terms:</label>
+          <textarea value={terms} onChange={(e) => setTerms(e.target.value)} style={{ width: "100%", height: "80px", color: "#000" }} />
           
-          <button onClick={generatePDF} style={{ width: "100%", padding: "12px", background: "#dc2626", color: "white", border: "none", borderRadius: "5px", cursor: "pointer", fontWeight: "bold" }}>Download PDF</button>
+          <button onClick={generatePDF} style={{ marginTop: "15px", width: "100%", padding: "12px", background: "#dc2626", color: "#fff", border: "none", cursor: "pointer", fontWeight: "bold" }}>Download PDF & Save Booking</button>
         </div>
 
-        {/* දකුණු පස Letterhead Preview */}
+        {/* Preview */}
         <div ref={quotationRef} style={{ background: "#fff", color: "#000", width: "210mm", minHeight: "297mm", backgroundImage: "url('/irosh-letterhead.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
           <div style={{ paddingTop: "250px", paddingLeft: "50px", paddingRight: "50px" }}> 
-            <p><strong>To:</strong> {clientName} | <strong>Event:</strong> {eventName}</p>
-            <p><strong>Date:</strong> {eventDate} | <strong>Time:</strong> {eventTime}</p>
-
-            <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}>
-              <thead><tr style={{ background: "#eee" }}><th style={{ padding: "10px", border: "1px solid #999" }}>Description</th><th style={{ padding: "10px", border: "1px solid #999" }}>Amount (Rs)</th></tr></thead>
-              <tbody>
-                <tr>
-                  <td style={{ padding: "20px", border: "1px solid #999", height: "200px", verticalAlign: "top" }}>
-                    <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit" }}>{packageName}</pre>
-                  </td>
-                  <td style={{ padding: "20px", border: "1px solid #999", verticalAlign: "top", textAlign: "right" }}>{amount ? Number(amount).toLocaleString() : "-"}</td>
-                </tr>
-              </tbody>
-            </table>
-
+            <p><strong>To:</strong> {clientName} | <strong>Event:</strong> {eventName} | <strong>Date:</strong> {eventDate} | <strong>Time:</strong> {eventTime}</p>
             <div style={{ marginTop: "40px" }}>
-              <p style={{ fontWeight: "bold", textDecoration: "underline", marginBottom: "15px" }}>Terms & Conditions:</p>
-              <ul style={{ fontSize: "14px", paddingLeft: "20px", listStyleType: "disc" }}>
-                {terms.split('\n').filter(t => t.trim() !== "").map((term, i) => (
-                  <li key={i} style={{ marginBottom: "8px" }}>{term}</li>
-                ))}
+              <p style={{ fontWeight: "bold", textDecoration: "underline" }}>Terms & Conditions:</p>
+              <ul style={{ paddingLeft: "20px", listStyleType: "disc" }}>
+                {terms.split('\n').filter(t => t.trim() !== "").map((term, i) => <li key={i} style={{ marginBottom: "8px" }}>{term}</li>)}
               </ul>
             </div>
           </div>
