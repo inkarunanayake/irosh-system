@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 
 export default function BookingPage() {
   const router = useRouter();
-  const [bookings, setBookings] = useState<any[]>([]); // මෙය තමයි සම්පූර්ණ ලැයිස්තුව
+  const [bookings, setBookings] = useState<any[]>([]);
   const [workers, setWorkers] = useState<any[]>([]);
   const [equipment, setEquipment] = useState<any[]>([]);
   const [selectedWorkers, setSelectedWorkers] = useState<Record<number, number[]>>({});
@@ -17,38 +17,26 @@ export default function BookingPage() {
   useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
-    // 1. සියලුම බුකින් ලබා ගැනීම
-    const { data: bData, error } = await supabase.from("bookings").select("*").order("event_date", { ascending: true });
-    if (error) console.error("Error fetching bookings:", error);
+    const { data: bData } = await supabase.from("bookings").select("*").order("event_date", { ascending: true });
+    const localBookings = JSON.parse(localStorage.getItem("bookings") || "[]");
     
-    // 2. අනිත් දත්ත ලබා ගැනීම
+    setBookings([...(bData || []), ...localBookings]);
+    
     const { data: wData } = await supabase.from("users").select("id, name").eq("role", "worker");
     const { data: eData } = await supabase.from("equipment").select("*");
     
-    setBookings(bData || []);
     setWorkers(wData || []);
     setEquipment(eData || []);
   };
 
-  // --- Logic Functions (Worker, Equip, Update, Delete) ---
   const toggleWorker = (bookingId: number, workerId: number, date: string) => {
-    const isBusy = bookings.some(b => b.id !== bookingId && b.event_date === date && selectedWorkers[b.id]?.includes(workerId));
-    if (isBusy) { alert("⚠️ Worker is already busy!"); return; }
     setSelectedWorkers(prev => ({ ...prev, [bookingId]: prev[bookingId]?.includes(workerId) ? prev[bookingId].filter(id => id !== workerId) : [...(prev[bookingId] || []), workerId] }));
   };
 
-  const addEquipment = (bookingId: number, equipId: string, date: string) => {
+  const addEquipment = (bookingId: number, equipId: string) => {
     const equip = equipment.find(e => e.id === Number(equipId));
     if (!equip) return;
-    const totalAllocated = bookings.reduce((sum, b) => b.event_date === date ? sum + (selectedEquip[b.id]?.find((e: any) => e.id === equip.id)?.qty || 0) : sum, 0);
-    if (totalAllocated >= equip.quantity) { alert("❌ Out of stock!"); return; }
     setSelectedEquip(prev => ({ ...prev, [bookingId]: [...(prev[bookingId] || []), { id: equip.id, brand: equip.brand, qty: 1 }] }));
-  };
-
-  const updateQty = (bookingId: number, eqId: number, newQty: number, date: string) => {
-    const equip = equipment.find(e => e.id === eqId);
-    if (newQty > equip.quantity) { alert("❌ Cannot exceed total stock!"); return; }
-    setSelectedEquip(prev => ({ ...prev, [bookingId]: prev[bookingId].map(i => i.id === eqId ? {...i, qty: newQty} : i) }));
   };
 
   const updateBooking = async (id: number) => {
@@ -66,67 +54,49 @@ export default function BookingPage() {
 
   const confirmBooking = async (b: any) => {
     await supabase.from("bookings").update({ status: 'confirmed' }).eq("id", b.id);
-    const msg = `Hello ${b.full_name}, your booking is confirmed! Total Balance: Rs.${b.total_balance}.`;
-    window.open(`https://wa.me/${b.customer_phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/${b.customer_phone}?text=Your booking is confirmed!`, '_blank');
     fetchData();
   };
 
   return (
-    <main className="min-h-screen bg-black text-white p-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-red-500">All Bookings ({bookings.length})</h1>
-        <button onClick={() => fetchData()} className="bg-zinc-800 px-4 py-2 rounded text-sm">Refresh List</button>
+    <main className="min-h-screen bg-gray-50 text-black p-8">
+      <div className="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <button onClick={() => router.push("/admin")} className="bg-red-600 text-white px-5 py-2 rounded-xl font-bold text-sm hover:bg-red-700 transition">← Back to Admin Dashboard</button>
+        <h1 className="text-2xl font-extrabold text-gray-800">Booking Management</h1>
+        <button onClick={fetchData} className="bg-gray-200 px-5 py-2 rounded-xl text-sm font-semibold hover:bg-gray-300">Refresh</button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {bookings.length === 0 ? (
-          <p className="text-gray-500">No bookings found.</p>
-        ) : (
-          bookings.map(b => (
-            <div key={b.id} className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800">
-              {editingId === b.id ? (
-                <div className="space-y-3">
-                  <input className="w-full bg-black p-2 rounded text-sm" defaultValue={b.full_name} onChange={e => setEditForm({...editForm, full_name: e.target.value})} placeholder="Name" />
-                  <input type="number" className="w-full bg-black p-2 rounded text-sm" defaultValue={b.total_balance} onChange={e => setEditForm({...editForm, total_balance: Number(e.target.value)})} placeholder="Balance" />
-                  <button onClick={() => updateBooking(b.id)} className="bg-green-600 w-full py-2 rounded">Save</button>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {bookings.map(b => (
+          <div key={b.id} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+            {editingId === b.id ? (
+              <div className="space-y-3">
+                <input className="w-full bg-gray-100 p-2 rounded text-sm" defaultValue={b.full_name} onChange={e => setEditForm({...editForm, full_name: e.target.value})} />
+                <button onClick={() => updateBooking(b.id)} className="bg-green-600 text-white w-full py-2 rounded">Save</button>
+              </div>
+            ) : (
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">{b.full_name}</h2>
+                <p className="text-xs text-gray-500 mb-4">Date: {b.event_date} | Status: {b.status || 'Pending'}</p>
+                
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {workers.map(w => <button key={w.id} onClick={() => toggleWorker(b.id, w.id, b.event_date)} className={`px-2 py-1 text-[10px] rounded ${selectedWorkers[b.id]?.includes(w.id) ? 'bg-red-600 text-white' : 'bg-gray-100'}`}>{w.name}</button>)}
                 </div>
-              ) : (
-                <div>
-                  <h2 className="text-xl font-bold text-red-500">{b.full_name}</h2>
-                  <p className="text-xs text-gray-400">Date: {b.event_date} | Loc: {b.location}</p>
-                  <p className="text-xs text-gray-400 mb-4">Status: {b.status || 'Pending'} | Bal: Rs.{b.total_balance}</p>
-                  
-                  {/* Workers Selection */}
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {workers.map(w => <button key={w.id} onClick={() => toggleWorker(b.id, w.id, b.event_date)} className={`px-2 py-0.5 text-[10px] rounded ${selectedWorkers[b.id]?.includes(w.id) ? 'bg-red-600' : 'bg-black border border-zinc-700'}`}>{w.name}</button>)}
-                  </div>
 
-                  {/* Equipment Selection */}
-                  <select className="w-full bg-black p-2 text-xs rounded mb-2" onChange={(e) => addEquipment(b.id, e.target.value, b.event_date)}>
-                    <option>Add Equipment...</option>
-                    {equipment.map(e => <option key={e.id} value={e.id}>{e.brand}</option>)}
-                  </select>
+                <select className="w-full bg-gray-100 p-2 text-xs rounded mb-3" onChange={(e) => addEquipment(b.id, e.target.value)}>
+                  <option>Add Equipment...</option>
+                  {equipment.map(e => <option key={e.id} value={e.id}>{e.brand}</option>)}
+                </select>
 
-                  <div className="space-y-1 mb-4">
-                    {selectedEquip[b.id]?.map((eq: any) => (
-                      <div key={eq.id} className="flex justify-between bg-black p-1 rounded text-[10px]">
-                        <span>{eq.brand}</span>
-                        <input type="number" value={eq.qty} className="w-8 bg-zinc-800 text-center" onChange={(e) => updateQty(b.id, eq.id, Number(e.target.value), b.event_date)} />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <button onClick={() => confirmBooking(b)} className="bg-green-700 px-3 py-1 text-[10px] rounded">Confirm & WA</button>
-                    <button onClick={() => {setEditingId(b.id); setEditForm(b);}} className="bg-blue-700 px-3 py-1 text-[10px] rounded">Edit</button>
-                    <button onClick={() => deleteBooking(b.id)} className="bg-red-700 px-3 py-1 text-[10px] rounded">Delete</button>
-                  </div>
+                <div className="flex gap-2 pt-4 border-t">
+                  <button onClick={() => confirmBooking(b)} className="flex-1 bg-black text-white py-2 rounded-lg text-xs font-bold hover:bg-gray-800">Confirm & WA</button>
+                  <button onClick={() => {setEditingId(b.id); setEditForm(b);}} className="flex-1 bg-gray-100 py-2 rounded-lg text-xs font-bold hover:bg-gray-200">Edit</button>
+                  <button onClick={() => deleteBooking(b.id)} className="flex-1 bg-red-100 text-red-600 py-2 rounded-lg text-xs font-bold">Delete</button>
                 </div>
-              )}
-            </div>
-          ))
-        )}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </main>
   );
