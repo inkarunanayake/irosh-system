@@ -14,17 +14,18 @@ export default function QuotationsPage() {
   const router = useRouter();
   const quotationRef = useRef<HTMLDivElement>(null);
 
-  // Customer & Event States
+  // Customer & Event States (රැස්කළ සියලුම fields සමඟ)
   const [quotationDate, setQuotationDate] = useState("2026.10.02");
   const [clientName, setClientName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [eventName, setEventName] = useState("");
   const [eventType, setEventType] = useState("");
   const [eventLocation, setEventLocation] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
 
-  // Items List
+  // Items List (Services & Amounts)
   const [items, setItems] = useState<Item[]>([
     { description: "", amount: "" },
   ]);
@@ -88,7 +89,7 @@ export default function QuotationsPage() {
       full_name: clientName,
       customer_phone: phone,
       customer_email: email,
-      location: eventLocation,
+      location: eventLocation || eventName,
       event_date: eventDate,
       total_balance: calculateTotal(),
       status: "Pending"
@@ -109,44 +110,60 @@ export default function QuotationsPage() {
 
       <div style={{ display: "flex", gap: "20px", alignItems: "flex-start", justifyContent: "center" }}>
         
-        {/* INPUT FORM PANEL */}
-        <div style={{ width: "420px", background: "#fff", padding: "20px", borderRadius: "10px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)", maxHeight: "90vh", overflowY: "auto" }}>
-          <h2 style={{ color: "#111827", marginBottom: "15px" }}>Quotation Details</h2>
+        {/* INPUT FORM PANEL (වම් පැත්තේ සම්පූර්ණ විස්තර ඇතුළත් කරන කොටස) */}
+        <div style={{ width: "440px", background: "#fff", padding: "20px", borderRadius: "10px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)", maxHeight: "90vh", overflowY: "auto" }}>
+          <h2 style={{ color: "#111827", marginBottom: "15px", fontSize: "18px", borderBottom: "2px solid #dc2626", paddingBottom: "5px" }}>Quotation Details</h2>
           
-          <label style={{ fontWeight: "bold", fontSize: "14px" }}>Quotation Date</label>
+          <label style={{ fontWeight: "bold", fontSize: "13px" }}>Quotation Date</label>
           <input type="text" value={quotationDate} onChange={(e) => setQuotationDate(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", border: "1px solid #ccc", borderRadius: "4px" }} />
 
-          <label style={{ fontWeight: "bold", fontSize: "14px" }}>Customer Name</label>
+          <label style={{ fontWeight: "bold", fontSize: "13px" }}>Customer Name</label>
           <input value={clientName} onChange={(e) => setClientName(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", border: "1px solid #ccc", borderRadius: "4px" }} />
 
-          <label style={{ fontWeight: "bold", fontSize: "14px" }}>Contact Number</label>
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", border: "1px solid #ccc", borderRadius: "4px" }} />
+          <div style={{ display: "flex", gap: "10px" }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontWeight: "bold", fontSize: "13px" }}>Contact Number</label>
+              <input value={phone} onChange={(e) => setPhone(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", border: "1px solid #ccc", borderRadius: "4px" }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontWeight: "bold", fontSize: "13px" }}>Email</label>
+              <input value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", border: "1px solid #ccc", borderRadius: "4px" }} />
+            </div>
+          </div>
 
-          <label style={{ fontWeight: "bold", fontSize: "14px" }}>Event Type</label>
-          <input value={eventType} onChange={(e) => setEventType(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", border: "1px solid #ccc", borderRadius: "4px" }} />
+          <label style={{ fontWeight: "bold", fontSize: "13px" }}>Event Name</label>
+          <input value={eventName} onChange={(e) => setEventName(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", border: "1px solid #ccc", borderRadius: "4px" }} />
 
-          <label style={{ fontWeight: "bold", fontSize: "14px" }}>Event Location</label>
-          <input value={eventLocation} onChange={(e) => setEventLocation(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", border: "1px solid #ccc", borderRadius: "4px" }} />
+          <div style={{ display: "flex", gap: "10px" }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontWeight: "bold", fontSize: "13px" }}>Event Type</label>
+              <input value={eventType} onChange={(e) => setEventType(e.target.value)} placeholder="e.g. School Concert" style={{ width: "100%", padding: "8px", marginBottom: "10px", border: "1px solid #ccc", borderRadius: "4px" }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontWeight: "bold", fontSize: "13px" }}>Event Location</label>
+              <input value={eventLocation} onChange={(e) => setEventLocation(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", border: "1px solid #ccc", borderRadius: "4px" }} />
+            </div>
+          </div>
 
           <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
             <div style={{ flex: 1 }}>
-              <label style={{ fontWeight: "bold", fontSize: "14px" }}>Event Date</label>
+              <label style={{ fontWeight: "bold", fontSize: "13px" }}>Event Date</label>
               <input value={eventDate} onChange={(e) => setEventDate(e.target.value)} placeholder="2026.10.15" style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }} />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ fontWeight: "bold", fontSize: "14px" }}>Event Time</label>
+              <label style={{ fontWeight: "bold", fontSize: "13px" }}>Event Time</label>
               <input value={eventTime} onChange={(e) => setEventTime(e.target.value)} placeholder="5.00pm to 10.00 pm" style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }} />
             </div>
           </div>
 
-          <h3 style={{ marginTop: "15px", marginBottom: "10px", fontSize: "16px", borderBottom: "2px solid #dc2626", paddingBottom: "4px" }}>Services / Description</h3>
+          <h3 style={{ marginTop: "15px", marginBottom: "10px", fontSize: "15px", borderBottom: "2px solid #dc2626", paddingBottom: "4px" }}>Services / Description</h3>
           {items.map((item, index) => (
             <div key={index} style={{ marginBottom: "10px", background: "#f9fafb", padding: "10px", borderRadius: "6px", border: "1px solid #e5e7eb" }}>
               <textarea 
-                placeholder="Description" 
+                placeholder="Description & package details..." 
                 value={item.description} 
                 onChange={(e) => handleItemChange(index, "description", e.target.value)}
-                style={{ width: "100%", height: "50px", padding: "5px", marginBottom: "5px" }} 
+                style={{ width: "100%", height: "60px", padding: "5px", marginBottom: "5px", fontSize: "12px" }} 
               />
               <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                 <input 
@@ -154,7 +171,7 @@ export default function QuotationsPage() {
                   placeholder="Amount (LKR)" 
                   value={item.amount} 
                   onChange={(e) => handleItemChange(index, "amount", e.target.value)}
-                  style={{ flex: 1, padding: "5px" }} 
+                  style={{ flex: 1, padding: "5px", fontSize: "12px" }} 
                 />
                 {items.length > 1 && (
                   <button onClick={() => removeItemRow(index)} style={{ background: "#dc2626", color: "#fff", border: "none", padding: "5px 10px", cursor: "pointer", borderRadius: "4px" }}>X</button>
@@ -162,26 +179,26 @@ export default function QuotationsPage() {
               </div>
             </div>
           ))}
-          <button onClick={addItemRow} style={{ width: "100%", padding: "8px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>+ Add Service Item</button>
+          <button onClick={addItemRow} style={{ width: "100%", padding: "8px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", fontSize: "13px" }}>+ Add Service Item</button>
 
-          <h3 style={{ marginTop: "20px", marginBottom: "10px", fontSize: "16px", borderBottom: "2px solid #dc2626", paddingBottom: "4px" }}>Terms & Conditions</h3>
+          <h3 style={{ marginTop: "20px", marginBottom: "10px", fontSize: "15px", borderBottom: "2px solid #dc2626", paddingBottom: "4px" }}>Terms & Conditions</h3>
           {terms.map((term, index) => (
             <div key={index} style={{ display: "flex", gap: "5px", marginBottom: "5px" }}>
-              <input value={term} onChange={(e) => handleTermChange(index, e.target.value)} style={{ flex: 1, padding: "5px" }} />
+              <input value={term} onChange={(e) => handleTermChange(index, e.target.value)} style={{ flex: 1, padding: "5px", fontSize: "12px" }} />
               <button onClick={() => removeTerm(index)} style={{ background: "#dc2626", color: "#fff", border: "none", padding: "5px", cursor: "pointer", borderRadius: "4px" }}>X</button>
             </div>
           ))}
           <div style={{ display: "flex", gap: "5px", marginTop: "5px" }}>
-            <input value={newTerm} onChange={(e) => setNewTerm(e.target.value)} placeholder="Add new condition..." style={{ flex: 1, padding: "5px" }} />
-            <button onClick={addTerm} style={{ background: "#16a34a", color: "#fff", border: "none", padding: "5px 10px", cursor: "pointer", borderRadius: "4px" }}>Add</button>
+            <input value={newTerm} onChange={(e) => setNewTerm(e.target.value)} placeholder="Add new condition..." style={{ flex: 1, padding: "5px", fontSize: "12px" }} />
+            <button onClick={addTerm} style={{ background: "#16a34a", color: "#fff", border: "none", padding: "5px 10px", cursor: "pointer", borderRadius: "4px", fontWeight: "bold" }}>Add</button>
           </div>
 
-          <button onClick={generatePDF} style={{ marginTop: "20px", width: "100%", padding: "12px", background: "#dc2626", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "16px" }}>
+          <button onClick={generatePDF} style={{ marginTop: "20px", width: "100%", padding: "12px", background: "#dc2626", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "15px" }}>
             Download PDF & Save Booking
           </button>
         </div>
 
-        {/* QUOTATION PREVIEW (WORD MATCHING DESIGN) */}
+        {/* QUOTATION PREVIEW (WORD MATCHING DESIGN - දකුණු පැත්තේ පෙනෙන ස්වරූපය) */}
         <div ref={quotationRef} style={{ background: "#fff", color: "#000", width: "210mm", minHeight: "297mm", padding: "40px", boxShadow: "0 0 10px rgba(0,0,0,0.15)", fontFamily: "Arial, sans-serif", fontSize: "13px", boxSizing: "border-box", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
           
           <div>
@@ -201,13 +218,13 @@ export default function QuotationsPage() {
               <p style={{ margin: 0, fontWeight: "bold" }}>Date: {quotationDate}</p>
             </div>
 
-            {/* Customer Details */}
+            {/* Customer & Event Details Box */}
             <div style={{ background: "#f8f9fa", padding: "10px", border: "1px solid #ccc", borderRadius: "4px", marginBottom: "20px", lineHeight: "1.6" }}>
-              <p style={{ margin: 0 }}><strong>Customer Name:</strong> {clientName}</p>
-              <p style={{ margin: 0 }}><strong>Contact Number:</strong> {phone}</p>
+              <p style={{ margin: 0 }}><strong>Customer Name:</strong> {clientName} {email ? `| <strong>Email:</strong> ${email}` : ''}</p>
+              <p style={{ margin: 0 }}><strong>Contact Number:</strong> {phone} {eventName ? `| <strong>Event Name:</strong> ${eventName}` : ''}</p>
               <p style={{ margin: 0 }}>
-                <strong>Event Type:</strong> {eventType} &nbsp;|&nbsp; 
-                <strong>Event Location:</strong> {eventLocation} &nbsp;|&nbsp; 
+                {eventType && <><strong>Event Type:</strong> {eventType} &nbsp;|&nbsp; </>}
+                {eventLocation && <><strong>Event Location:</strong> {eventLocation} &nbsp;|&nbsp; </>}
                 <strong>Event Date & Time:</strong> {eventDate}{eventTime ? `, ${eventTime}` : ''}
               </p>
             </div>
@@ -227,7 +244,7 @@ export default function QuotationsPage() {
                       {item.description}
                     </td>
                     <td style={{ border: "1px solid #000", padding: "8px", textAlign: "right", verticalAlign: "top" }}>
-                      {item.amount ? parseFloat(item.amount).toFixed(2) : "0.00"}
+                      {item.amount ? Number(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
                     </td>
                   </tr>
                 ))}
@@ -236,7 +253,7 @@ export default function QuotationsPage() {
                     Total with transport:
                   </td>
                   <td style={{ border: "1px solid #000", padding: "8px", fontWeight: "bold", textAlign: "right", background: "#f9fafb" }}>
-                    LKR {calculateTotal().toFixed(2)}
+                    LKR {calculateTotal().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
                 </tr>
               </tbody>
